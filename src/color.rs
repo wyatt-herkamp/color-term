@@ -3,6 +3,25 @@ use std::num::ParseIntError;
 use std::str::FromStr;
 use crate::{InvalidStyleError};
 
+
+pub static BLACK: EightBitColor = EightBitColor(0);
+pub static RED: EightBitColor = EightBitColor(1);
+pub static GREEN: EightBitColor = EightBitColor(2);
+pub static YELLOW: EightBitColor = EightBitColor(3);
+pub static BLUE: EightBitColor = EightBitColor(4);
+pub static MAGENTA: EightBitColor = EightBitColor(5);
+pub static CYAN: EightBitColor = EightBitColor(6);
+pub static WHITE: EightBitColor = EightBitColor(7);
+pub static GRAY: EightBitColor = EightBitColor(8);
+pub static BRIGHT_RED: EightBitColor = EightBitColor(9);
+pub static BRIGHT_GREEN: EightBitColor = EightBitColor(10);
+pub static BRIGHT_YELLOW: EightBitColor = EightBitColor(11);
+pub static BRIGHT_BLUE: EightBitColor = EightBitColor(12);
+pub static BRIGHT_MAGENTA: EightBitColor = EightBitColor(13);
+pub static BRIGHT_CYAN: EightBitColor = EightBitColor(14);
+pub static BRIGHT_WHITE: EightBitColor = EightBitColor(15);
+
+
 /// Converts the type into a Color
 /// For the default implementation to work. Display must be implemented with the return type that is compatible with \x1b[{38 || 48};{VALUE}m
 pub trait DisplayColor: Display + Into<Color> {
@@ -17,6 +36,7 @@ pub trait DisplayColor: Display + Into<Color> {
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(tag = "color_type", content = "value"))]
+/// The Color allowing for the different implementations where needed
 pub enum Color {
     TrueColor(TrueColor),
     EightBitColor(EightBitColor),

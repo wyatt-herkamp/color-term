@@ -3,6 +3,9 @@ use std::num::ParseIntError;
 use std::str::FromStr;
 
 pub static RESET: Style = Style(0);
+pub static BOLD: Style = Style(1);
+pub static ITALIC: Style = Style(3);
+pub static UNDERLINE: Style = Style(4);
 
 
 /// Refers to to a ANSI Style code
