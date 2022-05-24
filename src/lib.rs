@@ -1,6 +1,8 @@
 pub mod no_color;
 pub mod styles;
 pub mod color;
+#[cfg(feature = "serde")]
+pub mod serde;
 
 use std::borrow::Cow;
 use std::error::Error;
@@ -70,6 +72,11 @@ impl<'content> StyledString<'content> {
 
 pub trait StyleString {
     fn style(&self) -> StyledString;
+
+    #[cfg(feature = "serde")]
+    fn apply_serde_styles(&self, value: serde::Styles) -> StyledString {
+        self.style().set_styles_from_config(value)
+    }
 }
 
 impl StyleString for String {
@@ -97,13 +104,23 @@ impl<'content> StyleString for &'content str {
 #[cfg(test)]
 pub mod test {
     use std::fs::File;
-    use crate::color::{EightBitColor, FourBitColor};
-    use crate::StyleString;
+    use crate::color::{EightBitColor, FourBitColor, TrueColor};
+    use crate::{Color, StyleString};
     use std::io::Write;
 
     #[test]
     pub fn general_test() {
         let string = "Howdy".style().text_color(EightBitColor::from(9)).background_color(FourBitColor::try_from(97).unwrap()).add_style(4);
         println!("{}", string);
+    }
+
+    #[test]
+    pub fn serde_test() {
+        let true_color = Color::TrueColor(TrueColor::from((5, 5, 5)));
+        let eight_bit_color = Color::EightBitColor(EightBitColor::from(5));
+        let four_bit_color = Color::FourBitColor(FourBitColor::from(5));
+        println!("true_color: {}", serde_json::to_string_pretty(&true_color).unwrap());
+        println!("eight_bit_color: {}", serde_json::to_string_pretty(&eight_bit_color).unwrap());
+        println!("for_bit_color: {}", serde_json::to_string_pretty(&four_bit_color).unwrap());
     }
 }

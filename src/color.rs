@@ -15,6 +15,8 @@ pub trait DisplayColor: Display + Into<Color> {
 }
 
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(tag = "color_type", content = "value"))]
 pub enum Color {
     TrueColor(TrueColor),
     EightBitColor(EightBitColor),
@@ -55,8 +57,21 @@ impl Display for Color {
     }
 }
 
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone)]
 pub struct TrueColor(u8, u8, u8);
+
+impl From<(u8, u8, u8)> for TrueColor {
+    fn from((r, g, b): (u8, u8, u8)) -> Self {
+        TrueColor(r, g, b)
+    }
+}
+
+impl Into<String> for TrueColor {
+    fn into(self) -> String {
+        format!("{};{};{}", self.0, self.1, self.2)
+    }
+}
 
 impl Display for TrueColor {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -72,6 +87,7 @@ impl Into<Color> for TrueColor {
 
 impl DisplayColor for TrueColor {}
 
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone)]
 pub struct EightBitColor(u8);
 
@@ -107,36 +123,22 @@ impl Into<Color> for EightBitColor {
 
 /// It is the data type as [EightBitColor] however, it renders a bit differently
 /// Only use this if you want older system support
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone)]
 pub struct FourBitColor(u8);
 
-impl TryFrom<u8> for FourBitColor {
-    type Error = InvalidStyleError;
-
-
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        if (40..=47).contains(&value) || (100..=107).contains(&value) {
-            // Background Color
-            Ok(FourBitColor(value - 40))
-        } else if (30..=37).contains(&value) || (90..=97).contains(&value) {
-            // Normal Color
-            Ok(FourBitColor(value - 30))
-        } else if !value >= 7 {
-            // Format wanted
-            Ok(FourBitColor(value))
-        } else {
-            // Invalid Value
-            Err(InvalidStyleError)
-        }
+impl From<u8> for FourBitColor {
+    fn from(value: u8) -> Self {
+        Self(value)
     }
 }
 
 impl FromStr for FourBitColor {
-    type Err = InvalidStyleError;
+    type Err = ParseIntError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let result = u8::from_str(s).map_err(|_| InvalidStyleError)?;
-        FourBitColor::try_from(result)
+        let result = u8::from_str(s)?;
+        Ok(FourBitColor::from(result))
     }
 }
 
@@ -148,17 +150,16 @@ impl Into<Color> for FourBitColor {
 
 impl DisplayColor for FourBitColor {
     fn fmt_background(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "\x1b[{};{}m", 1, self.0 + 40)
+        write!(f, "\x1b[1;{}m", self.0)
     }
     fn fmt_color(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "\x1b[{};{}m", 1, self.0 + 30)
+        write!(f, "\x1b[1;{}m", self.0)
     }
 }
 
 impl Display for FourBitColor {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        //Due to numbering differences. This doesn't work
-        write!(f, "1;{}", self.0)
+        write!(f, "\x1b[1;{}m", self.0)
     }
 }
 

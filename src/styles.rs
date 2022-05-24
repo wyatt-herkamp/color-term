@@ -8,6 +8,7 @@ pub static RESET: Style = Style(0);
 /// Refers to to a ANSI Style code
 /// Rendered VIA `\x1b[{u8}m`
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Style(u8);
 
 impl Display for Style {
