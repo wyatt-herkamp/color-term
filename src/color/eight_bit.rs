@@ -2,6 +2,9 @@ use std::fmt::{Display, Formatter};
 use std::num::ParseIntError;
 use std::str::FromStr;
 use crate::color::{Color, DisplayColor};
+#[cfg(not(feature = "default_four_bit"))]
+use crate::DefaultColor;
+
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone)]
 pub struct EightBitColor(u8);
