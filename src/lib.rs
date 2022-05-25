@@ -1,16 +1,27 @@
 pub mod no_color;
 pub mod styles;
 pub mod color;
-#[cfg(feature = "serde")]
-pub mod serde;
 
+use std::borrow::{Cow};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
-pub use crate::color::{Color, DisplayColor, TrueColor, DefaultColor, EightBitColor};
 use crate::styles::Style;
+pub use crate::color::{DefaultColor, Color, DisplayColor, EightBitColor, TrueColor};
 
 pub static SET_GRAPHIC: &str = "\x1b[{}m";
 pub static SET_GRAPHIC_MULTI: &str = "\x1b[{};{}m";
+
+
+/// A Styled String.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Clone, Default)]
+pub struct Styles {
+    pub text_color: Option<Color>,
+    pub background_color: Option<Color>,
+    #[cfg_attr(feature = "serde", serde(default))]
+    pub styles: Vec<Style>,
+}
+
 
 #[derive(Debug)]
 pub struct InvalidStyleError;
@@ -28,9 +39,7 @@ impl Error for InvalidStyleError {}
 pub struct StyledString<'content> {
     /// Content of the String
     content: &'content str,
-    text_color: Option<Color>,
-    background_color: Option<Color>,
-    styles: Vec<Style>,
+    styles: Cow<'content, Styles>,
 }
 
 impl<'content> Display for StyledString<'content> {
@@ -38,13 +47,13 @@ impl<'content> Display for StyledString<'content> {
         if !no_color::show_styles() {
             return Display::fmt(&self.content, f);
         }
-        for style in &self.styles {
+        for style in &self.styles.styles {
             Display::fmt(&style, f)?;
         }
-        if let Some(background) = self.background_color.as_ref() {
+        if let Some(background) = self.styles.background_color.as_ref() {
             background.fmt_background(f)?;
         }
-        if let Some(color) = self.text_color.as_ref() {
+        if let Some(color) = self.styles.text_color.as_ref() {
             color.fmt_color(f)?;
         }
         write!(f, "{}{}", self.content, styles::RESET)
@@ -55,22 +64,20 @@ impl<'content> StyledString<'content> {
     pub(crate) fn new(content: &'content str) -> StyledString {
         StyledString {
             content,
-            text_color: None,
-            background_color: None,
-            styles: vec![],
+            styles: Cow::Owned(Styles::default()),
         }
     }
     pub fn text_color<C: Into<Color>>(mut self, text: C) -> Self {
-        self.text_color = Some(text.into());
+        self.styles.to_mut().text_color = Some(text.into());
         self
     }
     pub fn background_color<C: Into<Color>>(mut self, text: C) -> Self {
-        self.background_color = Some(text.into());
+        self.styles.to_mut().background_color = Some(text.into());
         self
     }
 
     pub fn add_style<S: Into<Style>>(mut self, style: S) -> Self {
-        self.styles.push(style.into());
+        self.styles.to_mut().styles.push(style.into());
         self
     }
 }
@@ -79,9 +86,11 @@ pub trait StyleString {
     /// Converts the current type into a Styled String
     fn style(&self) -> StyledString;
 
-    #[cfg(feature = "serde")]
-    fn apply_serde_styles(&self, value: serde::Styles) -> StyledString {
-        self.style().set_styles_from_config(value)
+    /// Creates a styled string with the applied settings
+    fn apply_styles<'content>(&'content self, styles: &'content Styles) -> StyledString<'content> {
+        let mut styled = self.style();
+        styled.styles = Cow::Borrowed(styles);
+        styled
     }
 }
 
@@ -109,7 +118,7 @@ pub mod test {
     use std::fs::File;
     use crate::{Color, DefaultColor, EightBitColor, StyleString, TrueColor};
     use std::io::Write;
-    use crate::color::FourBitColor;
+    use crate::color::{DefaultColor, EightBitColor, FourBitColor, TrueColor};
 
     #[test]
     pub fn general_test() {
