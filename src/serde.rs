@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use crate::{Color, Style, StyledString, StyleString};
+use crate::{Color, Style, StyledString};
 
 /// A Styled String.
 #[derive(Debug, Clone, Serialize, Deserialize)]

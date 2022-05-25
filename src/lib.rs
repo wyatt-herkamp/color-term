@@ -4,12 +4,9 @@ pub mod color;
 #[cfg(feature = "serde")]
 pub mod serde;
 
-use std::borrow::Cow;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
-use std::num::ParseIntError;
-use std::str::FromStr;
-use crate::color::{Color, DisplayColor};
+pub use crate::color::{Color, DisplayColor, TrueColor, DefaultColor, EightBitColor};
 use crate::styles::Style;
 
 pub static SET_GRAPHIC: &str = "\x1b[{}m";
@@ -20,7 +17,7 @@ pub struct InvalidStyleError;
 
 impl Display for InvalidStyleError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "The Value provided is not compatiable with ANSI escape code standards")
+        writeln!(f, "The Value provided is not compatible with ANSI escape code standards")
     }
 }
 
@@ -30,10 +27,10 @@ impl Error for InvalidStyleError {}
 #[derive(Debug, Clone)]
 pub struct StyledString<'content> {
     /// Content of the String
-    pub content: Cow<'content, str>,
-    pub text_color: Option<Color>,
-    pub background_color: Option<Color>,
-    pub styles: Vec<Style>,
+    content: &'content str,
+    text_color: Option<Color>,
+    background_color: Option<Color>,
+    styles: Vec<Style>,
 }
 
 impl<'content> Display for StyledString<'content> {
@@ -55,6 +52,14 @@ impl<'content> Display for StyledString<'content> {
 }
 
 impl<'content> StyledString<'content> {
+    pub(crate) fn new(content: &'content str) -> StyledString {
+        StyledString {
+            content,
+            text_color: None,
+            background_color: None,
+            styles: vec![],
+        }
+    }
     pub fn text_color<C: Into<Color>>(mut self, text: C) -> Self {
         self.text_color = Some(text.into());
         self
@@ -71,6 +76,7 @@ impl<'content> StyledString<'content> {
 }
 
 pub trait StyleString {
+    /// Converts the current type into a Styled String
     fn style(&self) -> StyledString;
 
     #[cfg(feature = "serde")]
@@ -81,36 +87,33 @@ pub trait StyleString {
 
 impl StyleString for String {
     fn style(&self) -> StyledString {
-        StyledString {
-            content: Cow::Borrowed(self),
-            text_color: None,
-            background_color: None,
-            styles: vec![],
-        }
+        StyledString::new(self.as_str())
+    }
+}
+
+impl<'content> StyleString for &'content String {
+    fn style(&self) -> StyledString<'content> {
+        StyledString::new(self.as_str())
     }
 }
 
 impl<'content> StyleString for &'content str {
     fn style(&self) -> StyledString {
-        StyledString {
-            content: Cow::Borrowed(self),
-            text_color: None,
-            background_color: None,
-            styles: vec![],
-        }
+        StyledString::new(self)
     }
 }
+
 
 #[cfg(test)]
 pub mod test {
     use std::fs::File;
-    use crate::color::{EightBitColor, FourBitColor, TrueColor};
-    use crate::{Color, StyleString};
+    use crate::{Color, DefaultColor, EightBitColor, StyleString, TrueColor};
     use std::io::Write;
+    use crate::color::FourBitColor;
 
     #[test]
     pub fn general_test() {
-        let string = "Howdy".style().text_color(EightBitColor::from(9)).background_color(FourBitColor::try_from(97).unwrap()).add_style(4);
+        let string = "Howdy".style().text_color(DefaultColor::BrightBlue).background_color(FourBitColor::Black).add_style(4);
         println!("{}", string);
     }
 
@@ -118,7 +121,7 @@ pub mod test {
     pub fn serde_test() {
         let true_color = Color::TrueColor(TrueColor::from((5, 5, 5)));
         let eight_bit_color = Color::EightBitColor(EightBitColor::from(5));
-        let four_bit_color = Color::FourBitColor(FourBitColor::from(5));
+        let four_bit_color = Color::FourBitColor(FourBitColor::Black);
         println!("true_color: {}", serde_json::to_string_pretty(&true_color).unwrap());
         println!("eight_bit_color: {}", serde_json::to_string_pretty(&eight_bit_color).unwrap());
         println!("for_bit_color: {}", serde_json::to_string_pretty(&four_bit_color).unwrap());
