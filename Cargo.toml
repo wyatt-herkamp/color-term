@@ -4,7 +4,7 @@ description = "String colorizer for terminals"
 version = "1.0.0"
 edition = "2021"
 authors = ["Wyatt Herkamp <wherkamp@gmail.com>"]
-license = "MIT or Apache 2.0"
+license = "MIT OR Apache 2.0"
 homepage="https://github.com/wyatt-herkamp/style-term"
 documentation="https://docs.rs/style-term/latest/style-term/"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
