@@ -2,11 +2,33 @@ use std::fmt::{Display, Formatter};
 use std::num::ParseIntError;
 use std::str::FromStr;
 
-pub static RESET: Style = Style(0);
-pub static BOLD: Style = Style(1);
-pub static ITALIC: Style = Style(3);
-pub static UNDERLINE: Style = Style(4);
+/// Use Styles instead
+pub(crate) static RESET: Style = Style(0);
 
+/// Default Style Types
+pub enum Styles {
+    Reset,
+    Bold,
+    Italic,
+    Underline,
+}
+
+impl From<Styles> for Style {
+    fn from(style: Styles) -> Self {
+        match style {
+            Styles::Reset => {
+                Style(0)
+            }
+            Styles::Bold => {
+                Style(1)
+            }
+            Styles::Italic => { Style(3) }
+            Styles::Underline => {
+                Style(4)
+            }
+        }
+    }
+}
 
 /// Refers to to a ANSI Style code
 /// Rendered VIA `\x1b[{u8}m`

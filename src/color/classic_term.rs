@@ -25,6 +25,7 @@ pub enum FourBitColor {
 
 #[cfg(feature = "default_four_bit")]
 use crate::color::DefaultColor;
+
 #[cfg(feature = "default_four_bit")]
 impl From<DefaultColor> for Color {
     fn from(value: DefaultColor) -> Self {
@@ -50,6 +51,49 @@ impl From<DefaultColor> for Color {
     }
 }
 
+impl FourBitColor {
+    fn background_color_code(&self) -> u8 {
+        match self {
+            FourBitColor::Black => { 40 }
+            FourBitColor::Red => { 41 }
+            FourBitColor::Green => { 42 }
+            FourBitColor::Yellow => { 43 }
+            FourBitColor::Blue => { 44 }
+            FourBitColor::Magenta => { 45 }
+            FourBitColor::Cyan => { 46 }
+            FourBitColor::White => { 47 }
+            FourBitColor::Gray => { 100 }
+            FourBitColor::BrightRed => { 101 }
+            FourBitColor::BrightGreen => { 102 }
+            FourBitColor::BrightYellow => { 103 }
+            FourBitColor::BrightBlue => { 104 }
+            FourBitColor::BrightMagenta => { 105 }
+            FourBitColor::BrightCyan => { 106 }
+            FourBitColor::BrightWhite => { 107 }
+        }
+    }
+    fn color_code(&self) -> u8 {
+        match self {
+            FourBitColor::Black => { 30 }
+            FourBitColor::Red => { 31 }
+            FourBitColor::Green => { 32 }
+            FourBitColor::Yellow => { 33 }
+            FourBitColor::Blue => { 34 }
+            FourBitColor::Magenta => { 35 }
+            FourBitColor::Cyan => { 36 }
+            FourBitColor::White => { 37 }
+            FourBitColor::Gray => { 90 }
+            FourBitColor::BrightRed => { 91 }
+            FourBitColor::BrightGreen => { 92 }
+            FourBitColor::BrightYellow => { 93 }
+            FourBitColor::BrightBlue => { 94 }
+            FourBitColor::BrightMagenta => { 95 }
+            FourBitColor::BrightCyan => { 96 }
+            FourBitColor::BrightWhite => { 97 }
+        }
+    }
+}
+
 impl From<FourBitColor> for Color {
     fn from(color: FourBitColor) -> Self {
         Color::FourBitColor(color)
@@ -58,48 +102,16 @@ impl From<FourBitColor> for Color {
 
 impl DisplayColor for FourBitColor {
     fn fmt_background(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let color_code: u8 =
-            match self {
-                FourBitColor::Black => { 40 }
-                FourBitColor::Red => { 41 }
-                FourBitColor::Green => { 42 }
-                FourBitColor::Yellow => { 43 }
-                FourBitColor::Blue => { 44 }
-                FourBitColor::Magenta => { 45 }
-                FourBitColor::Cyan => { 46 }
-                FourBitColor::White => { 47 }
-                FourBitColor::Gray => { 100 }
-                FourBitColor::BrightRed => { 101 }
-                FourBitColor::BrightGreen => { 102 }
-                FourBitColor::BrightYellow => { 103 }
-                FourBitColor::BrightBlue => { 104 }
-                FourBitColor::BrightMagenta => { 105 }
-                FourBitColor::BrightCyan => { 106 }
-                FourBitColor::BrightWhite => { 107 }
-            };
-        write!(f, "\x1b[1;{}m", color_code)
+        write!(f, "\x1b[1;{}m", self.background_color_code())
     }
     fn fmt_color(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let color_code: u8 =
-            match self {
-                FourBitColor::Black => { 30 }
-                FourBitColor::Red => { 31 }
-                FourBitColor::Green => { 32 }
-                FourBitColor::Yellow => { 33 }
-                FourBitColor::Blue => { 34 }
-                FourBitColor::Magenta => { 35 }
-                FourBitColor::Cyan => { 36 }
-                FourBitColor::White => { 37 }
-                FourBitColor::Gray => { 90 }
-                FourBitColor::BrightRed => { 91 }
-                FourBitColor::BrightGreen => { 92 }
-                FourBitColor::BrightYellow => { 93 }
-                FourBitColor::BrightBlue => { 94 }
-                FourBitColor::BrightMagenta => { 95 }
-                FourBitColor::BrightCyan => { 96 }
-                FourBitColor::BrightWhite => { 97 }
-            };
-        write!(f, "\x1b[1;{}m", color_code)
+        write!(f, "\x1b[1;{}m", self.color_code())
+    }
+    fn background_color(&self) -> String {
+        format!( "\x1b[1;{}m", self.background_color_code())
+    }
+    fn color(&self) -> String {
+        format!("\x1b[1;{}m", self.color_code())
     }
 }
 

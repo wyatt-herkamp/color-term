@@ -3,6 +3,10 @@ use crate::color::{Color, DisplayColor};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone)]
+/// Uses a R G B value
+/// Stored a tuple of (u8, u8, u8)
+///
+/// You can create one via TrueColor::from((r,g,b))
 pub struct TrueColor(u8, u8, u8);
 
 impl From<(u8, u8, u8)> for TrueColor {

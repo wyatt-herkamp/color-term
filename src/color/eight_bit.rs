@@ -5,6 +5,7 @@ use crate::color::{Color, DisplayColor};
 #[cfg(not(feature = "default_four_bit"))]
 use crate::DefaultColor;
 
+/// An 8 Bit color Uses values 0-255
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone)]
 pub struct EightBitColor(u8);
@@ -57,10 +58,7 @@ impl From<DefaultColor> for Color {
 }
 
 
-
 impl DisplayColor for EightBitColor {}
-
-
 
 
 impl From<EightBitColor> for Color {
